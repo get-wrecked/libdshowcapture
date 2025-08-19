@@ -280,6 +280,11 @@ bool Device::EnumVideoDevices(std::vector<VideoDevice> &devices)
 			   EnumDeviceCallback(EnumVideoDevice), &devices);
 }
 
+void Device::SetBlockedVideoDevices(const std::vector<std::wstring> &devices)
+{
+	VideoDeviceBlocklist::Set(devices);
+}
+
 static bool EnumAudioDevice(vector<AudioDevice> &devices, IBaseFilter *filter,
 			    const wchar_t *deviceName,
 			    const wchar_t *devicePath)

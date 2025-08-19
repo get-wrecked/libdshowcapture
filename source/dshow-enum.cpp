@@ -474,6 +474,12 @@ static bool EnumDevice(const GUID &type, IMoniker *deviceInfo,
 
 	propertyData->Read(L"DevicePath", &devicePath, NULL);
 
+	if (type == CLSID_VideoInputDeviceCategory &&
+		VideoDeviceBlocklist::Contains(deviceName.bstrVal))
+	{
+		return true;
+	}
+
 	hr = deviceInfo->BindToObject(NULL, 0, IID_IBaseFilter,
 				      (void **)&filter);
 	if (SUCCEEDED(hr)) {
@@ -570,4 +576,23 @@ bool EnumDevices(const GUID &type, EnumDeviceCallback callback, void *param)
 	return true;
 }
 
+std::vector<std::wstring> VideoDeviceBlocklist::blockedDevices{};
+
+std::mutex VideoDeviceBlocklist::deviceMutex;
+
+void VideoDeviceBlocklist::Set(const std::vector<std::wstring> &devices)
+{
+	std::lock_guard lck(deviceMutex);
+	blockedDevices = devices;
+}
+
+bool VideoDeviceBlocklist::Contains(const wchar_t *deviceName)
+{
+	std::lock_guard lck(deviceMutex);
+    if (!deviceName)
+		return false;
+    return std::find(blockedDevices.begin(),
+		blockedDevices.end(),
+		std::wstring(deviceName)) != blockedDevices.end();
+}
 }; /* namespace DShow */

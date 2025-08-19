@@ -252,6 +252,8 @@ public:
 
 	static bool EnumVideoDevices(std::vector<VideoDevice> &devices);
 	static bool EnumAudioDevices(std::vector<AudioDevice> &devices);
+
+	static void SetBlockedVideoDevices(const std::vector<std::wstring> &devices);
 };
 
 struct VideoEncoderConfig : DeviceId {

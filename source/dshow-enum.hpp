@@ -24,6 +24,7 @@
 #include "dshow-media-type.hpp"
 
 #include <vector>
+#include <mutex>
 
 using namespace std;
 
@@ -43,4 +44,13 @@ typedef bool (*EnumDeviceCallback)(void *param, IBaseFilter *filter,
 
 bool EnumDevices(const GUID &type, EnumDeviceCallback callback, void *param);
 
+class VideoDeviceBlocklist {
+private:
+    static std::vector<std::wstring> blockedDevices;
+    static std::mutex deviceMutex;
+
+public:
+    static void Set(const std::vector<std::wstring>& devices);
+    static bool Contains(const wchar_t* deviceName);
+};
 }; /* namespace DShow */
