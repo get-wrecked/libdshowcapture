@@ -442,7 +442,8 @@ bool EnumAudioCaps(IPin *pin, vector<AudioInfo> &caps)
 static bool decklinkVideoPresent = false;
 
 static bool EnumDevice(const GUID &type, IMoniker *deviceInfo,
-		       EnumDeviceCallback callback, void *param)
+		    EnumDeviceCallback callback, void *param,
+			EnumBlacklistCallback bCallback, const void *blacklist)
 {
 	ComPtr<IPropertyBag> propertyData;
 	ComPtr<IBaseFilter> filter;
@@ -473,6 +474,14 @@ static bool EnumDevice(const GUID &type, IMoniker *deviceInfo,
 	}
 
 	propertyData->Read(L"DevicePath", &devicePath, NULL);
+
+	if (bCallback && blacklist)
+	{
+		if (bCallback(blacklist, deviceName.bstrVal))
+		{
+			return true; // skip
+		}
+	}
 
 	hr = deviceInfo->BindToObject(NULL, 0, IID_IBaseFilter,
 				      (void **)&filter);
@@ -526,7 +535,7 @@ static void CheckForDecklinkVideo()
 		    nullptr);
 }
 
-bool EnumDevices(const GUID &type, EnumDeviceCallback callback, void *param)
+bool EnumDevices(const GUID &type, EnumDeviceCallback callback, void *param, EnumBlacklistCallback bCallback, const void *blacklist)
 {
 	lock_guard<recursive_mutex> lock(enumMutex);
 	ComPtr<ICreateDevEnum> deviceEnum;
@@ -558,7 +567,7 @@ bool EnumDevices(const GUID &type, EnumDeviceCallback callback, void *param)
 
 	if (hr == S_OK) {
 		while (enumMoniker->Next(1, &deviceInfo, &count) == S_OK) {
-			if (!EnumDevice(type, deviceInfo, callback, param))
+			if (!EnumDevice(type, deviceInfo, callback, param, bCallback, blacklist))
 				return true;
 		}
 	}

@@ -41,6 +41,8 @@ typedef bool (*EnumDeviceCallback)(void *param, IBaseFilter *filter,
 				   const wchar_t *deviceName,
 				   const wchar_t *devicePath);
 
-bool EnumDevices(const GUID &type, EnumDeviceCallback callback, void *param);
+typedef bool (*EnumBlacklistCallback)(const void *param, const wchar_t *deviceName);
+
+bool EnumDevices(const GUID &type, EnumDeviceCallback callback, void *param, EnumBlacklistCallback bCallback = nullptr, const void *blacklist = nullptr);
 
 }; /* namespace DShow */

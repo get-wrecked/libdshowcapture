@@ -273,11 +273,25 @@ static bool EnumVideoDevice(std::vector<VideoDevice> &devices,
 	return true;
 }
 
+static bool EnumBlacklistDevice(const void *param, const wchar_t *deviceName)
+{
+    if (!deviceName) return false;
+	const auto &devices = *static_cast<const std::vector<std::wstring>*>(param);
+    return std::find(devices.begin(), devices.end(), std::wstring(deviceName)) != devices.end();
+}
+
 bool Device::EnumVideoDevices(std::vector<VideoDevice> &devices)
 {
 	devices.clear();
 	return EnumDevices(CLSID_VideoInputDeviceCategory,
 			   EnumDeviceCallback(EnumVideoDevice), &devices);
+}
+
+bool Device::CustomEnumVideoDevices(std::vector<VideoDevice> &devices, const std::vector<std::wstring> &blacklist)
+{
+	devices.clear();
+	return EnumDevices(CLSID_VideoInputDeviceCategory,
+			   EnumDeviceCallback(EnumVideoDevice), &devices, EnumBlacklistCallback(EnumBlacklistDevice), &blacklist);
 }
 
 static bool EnumAudioDevice(vector<AudioDevice> &devices, IBaseFilter *filter,
